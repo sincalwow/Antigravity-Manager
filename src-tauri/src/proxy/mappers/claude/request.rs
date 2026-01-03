@@ -747,6 +747,24 @@ fn build_generation_config(
         config["topK"] = json!(top_k);
     }
 
+    // Effort level mapping (Claude API v2.0.67+)
+    // Maps Claude's output_config.effort to Gemini's effortLevel
+    if let Some(output_config) = &claude_req.output_config {
+        if let Some(effort) = &output_config.effort {
+            config["effortLevel"] = json!(match effort.to_lowercase().as_str() {
+                "high" => "HIGH",
+                "medium" => "MEDIUM",
+                "low" => "LOW",
+                _ => "HIGH" // Default to HIGH for unknown values
+            });
+            tracing::debug!(
+                "[Generation-Config] Effort level set: {} -> {}",
+                effort,
+                config["effortLevel"]
+            );
+        }
+    }
+
     // web_search 强制 candidateCount=1
     /*if has_web_search {
         config["candidateCount"] = json!(1);
@@ -789,6 +807,7 @@ mod tests {
             top_k: None,
             thinking: None,
             metadata: None,
+            output_config: None,
         };
 
         let result = transform_claude_request_in(&req, "test-project");
@@ -885,6 +904,7 @@ mod tests {
             top_k: None,
             thinking: None,
             metadata: None,
+            output_config: None,
         };
 
         let result = transform_claude_request_in(&req, "test-project");
@@ -954,6 +974,7 @@ mod tests {
             top_k: None,
             thinking: None,
             metadata: None,
+            output_config: None,
         };
 
         let result = transform_claude_request_in(&req, "test-project");
@@ -1028,6 +1049,7 @@ mod tests {
                 budget_tokens: Some(1024),
             }),
             metadata: None,
+            output_config: None,
         };
 
         let result = transform_claude_request_in(&req, "test-project");
@@ -1076,6 +1098,7 @@ mod tests {
             top_k: None,
             thinking: None, // 未启用 thinking
             metadata: None,
+            output_config: None,
         };
 
         let result = transform_claude_request_in(&req, "test-project");
@@ -1128,6 +1151,7 @@ mod tests {
                 budget_tokens: Some(1024),
             }),
             metadata: None,
+            output_config: None,
         };
 
         let result = transform_claude_request_in(&req, "test-project");
@@ -1167,6 +1191,7 @@ mod tests {
             top_k: None,
             thinking: None,
             metadata: None,
+            output_config: None,
         };
 
         let result = transform_claude_request_in(&req, "test-project");
